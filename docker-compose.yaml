@@ -1,0 +1,86 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: my-laravel-app
+    container_name: my-laravel-app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: my-laravel-app
+      SERVICE_TAGS: dev
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - app-network
+
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - ./src/.env
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    container_name: laravel_db
+    restart: always
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # Nginx Service
+  web:
+    image: 'nginx:alpine'
+    ports:
+      - "8000:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    env_file:
+      - ./src/.env
+    container_name: laravel_rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"     # Порт для подключения Laravel к очереди
+      - "15672:15672"   # Порт для веб-панели управления (Management Plugin)
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network # Убедитесь, что все контейнеры находятся в одной сети
+      
+  redis:
+    image: redis:7-alpine
+    container_name: laravel_redis
+    restart: always
+    command: redis-server --appendonly yes # Включает постоянное сохранение данных на диск
+    ports:
+      - "6379:6379" # Открывает порт наружу (если нужно подключаться с хост-машины)
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
+  rabbitmq_data:
+  redis_data:
