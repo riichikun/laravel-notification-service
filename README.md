@@ -29,4 +29,4 @@
 `docker compose exec app php artisan queue:work --queue=high,default`
 
 
-*[Коллекция Postman](https://.postman.co/workspace/Personal-Workspace~9a35cce7-709e-46a9-b4af-19a3237db252/collection/42542926-ee9741ae-2290-413c-b6e7-f50bcf21eaa5?action=share&creator=42542926) с документацией по API*
+*[Коллекция Postman](https://riichikuns-team.postman.co/workspace/Personal-Workspace~9a35cce7-709e-46a9-b4af-19a3237db252/collection/42542926-ee9741ae-2290-413c-b6e7-f50bcf21eaa5?action=share&creator=42542926) с документацией по API*
